@@ -1,0 +1,110 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --color-bg: #0a0b0d;
+  --color-panel: #14161a;
+  --color-panel2: #191b20;
+  --color-border: #23262b;
+  --color-borderHi: #31353c;
+  --color-text: #f2f1ed;
+  --color-muted: #8b8d92;
+  --color-faint: #57595e;
+  --color-accent: #8257ff;
+  --color-accentHi: #9670ff;
+  --color-buy: #3fbf7f;
+  --color-sell: #e5484d;
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #f7f7f8;
+  --color-panel: #ffffff;
+  --color-panel2: #f1f2f4;
+  --color-border: #e3e4e8;
+  --color-borderHi: #cfd1d7;
+  --color-text: #16171a;
+  --color-muted: #5b5d63;
+  --color-faint: #8b8d92;
+  --color-accent: #6c40ff;
+  --color-accentHi: #7d54ff;
+  --color-buy: #1e9a5a;
+  --color-sell: #d33a3f;
+  --shadow-color: rgba(16, 18, 22, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1;
+}
+
+.font-mono {
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+@layer components {
+  .input {
+    @apply w-full bg-panel2 border border-border rounded px-3 py-2 text-sm text-text placeholder:text-faint outline-none transition-colors;
+  }
+  .input:focus {
+    @apply border-amber;
+  }
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* thin scrollbars to match the terminal density */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-borderHi);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.drawer-in { animation: drawer-in 0.18s ease-out; }

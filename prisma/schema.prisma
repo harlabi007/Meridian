@@ -1,0 +1,68 @@
+// DBC Launch Studio — indexer database schema
+// Run `npm run db:push` after setting DATABASE_URL to create these tables (Supabase/Postgres recommended).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pool {
+  address                  String   @id
+  configAddress             String
+  baseMint                  String
+  quoteMint                 String
+  name                       String
+  symbol                      String
+  imageUrl                   String?
+  creator                    String
+  baseDecimals                Int
+  quoteDecimals               Int
+  totalSupply                 Float
+  migrationThresholdQuote      Float
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  // Latest snapshot, denormalized onto the pool row for fast list queries
+  priceQuote                   Float    @default(0)
+  quoteReserve                  Float    @default(0)
+  progressPct                   Float    @default(0)
+  marketCapQuote                 Float    @default(0)
+  migrated                       Boolean  @default(false)
+  migratedTo                     String?
+
+  snapshots                      Snapshot[]
+
+  @@index([migrated])
+  @@index([createdAt])
+}
+
+// A periodic on-chain state sample, used to reconstruct price history and
+// approximate volume (via quoteReserve deltas) without full event-log parsing.
+model Snapshot {
+  id            String   @id @default(cuid())
+  poolAddress   String
+  pool          Pool     @relation(fields: [poolAddress], references: [address])
+  priceQuote    Float
+  quoteReserve  Float
+  baseReserve   Float
+  progressPct   Float
+  takenAt       DateTime @default(now())
+
+  @@index([poolAddress, takenAt])
+}
+
+// A wallet-signed comment on a pool. No accounts — identity is the connected wallet,
+// proven by the same ed25519 signature scheme used for creator edits (see lib/verify.ts).
+model Comment {
+  id          String   @id @default(cuid())
+  poolAddress String
+  author      String
+  body        String
+  createdAt   DateTime @default(now())
+
+  @@index([poolAddress, createdAt])
+}
