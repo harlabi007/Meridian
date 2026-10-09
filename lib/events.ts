@@ -57,16 +57,33 @@ export async function fetchPoolTrades(
       const trader: string = (msg.staticAccountKeys ?? msg.accountKeys)?.[0]?.toBase58?.() ?? "unknown";
 
       for (const evt of p.parseLogs(logs)) {
-        if (evt.name !== "EvtSwap" && evt.name !== "evtSwap") continue;
+        // swap2 (what Meridian uses) emits EvtSwap2; the legacy swap emits EvtSwap. Handle both.
+        const evtName = String(evt.name).toLowerCase();
+        if (evtName !== "evtswap" && evtName !== "evtswap2") continue;
         const data = evt.data as Record<string, any>;
         const eventPool = data.pool?.toBase58?.();
         if (eventPool && eventPool !== poolAddress) continue;
 
         const side: TradeEvent["side"] = Number(data.tradeDirection) === 1 ? "sell" : "buy";
-        const rawIn = Number(data.amountIn?.toString?.() ?? data.params?.amountIn?.toString?.() ?? 0);
-        const rawOut = Number(
-          data.swapResult?.outputAmount?.toString?.() ?? data.swapResult?.amountOut?.toString?.() ?? 0
+        // First positive value among candidate fields (names differ between event versions)
+        const first = (...vals: any[]) => {
+          for (const v of vals) {
+            const n = Number(v?.toString?.() ?? NaN);
+            if (Number.isFinite(n) && n > 0) return n;
+          }
+          return 0;
+        };
+        const rawIn = first(
+          data.swapResult?.includedFeeInputAmount,
+          data.swapResult?.actualInputAmount,
+          data.swapParameters?.amount0,
+          data.params?.amountIn,
+          data.amountIn
         );
+        const rawOut = first(data.swapResult?.outputAmount, data.swapResult?.amountOut);
+        // If an event can't be interpreted reliably, skip it (the UI falls back to price
+        // snapshots) rather than display wrong numbers.
+        if (!rawIn || !rawOut) continue;
         // buy: SOL in (9 dec) -> token out (6 dec); sell: token in (6 dec) -> SOL out (9 dec)
         const quoteAmount = side === "buy" ? rawIn / 1e9 : rawOut / 1e9;
         const baseAmount = side === "buy" ? rawOut / 1e6 : rawIn / 1e6;

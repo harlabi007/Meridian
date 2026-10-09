@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
@@ -17,6 +18,7 @@ type Status = "idle" | "quoting" | "signing" | "done" | "error";
 
 export function SwapWidget({ poolAddress, symbol, migrated, baseMint }: { poolAddress: string; symbol: string; migrated: boolean; baseMint?: string }) {
   const { connection } = useConnection();
+  const queryClient = useQueryClient();
   const { publicKey, signTransaction } = useWallet();
   const { setVisible } = useWalletModal();
   const [prefs] = usePrefs();
@@ -104,6 +106,14 @@ export function SwapWidget({ poolAddress, symbol, migrated, baseMint }: { poolAd
       const sig = await sendAndConfirm({ connection, transaction: tx, feePayer: publicKey, signTransaction });
       setReceipt(sig);
       setStatus("done");
+      // Refresh everything that depends on this pool so the page reflects the trade now,
+      // then once more shortly after in case the RPC node was a moment behind.
+      const refresh = () =>
+        ["pool", "activity", "pools", "stats", "activity-feed", "leaderboard", "portfolio-balances", "portfolio-pools", "sol-balance"].forEach((k) =>
+          queryClient.invalidateQueries({ queryKey: [k] })
+        );
+      refresh();
+      setTimeout(refresh, 3000);
     } catch (err) {
       console.error(err);
       setError(err instanceof TxError || err instanceof Error ? err.message : "Swap failed.");

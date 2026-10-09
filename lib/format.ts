@@ -6,7 +6,7 @@ export function shortAddr(addr: string, chars = 4): string {
 export function fmtQuote(value: number, symbol = "SOL"): string {
   if (!value || !Number.isFinite(value)) return `0 ${symbol}`;
   // Token prices on a bonding curve are often tiny (e.g. 0.000000005 SOL), so show them in scientific form
-  if (value < 0.001) return `${value.toPrecision(3)} ${symbol}`;
+  if (value < 0.001) return `${value.toExponential(2)} ${symbol}`;
   const decimals = value < 1 ? 4 : value < 1000 ? 3 : 2;
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: decimals,

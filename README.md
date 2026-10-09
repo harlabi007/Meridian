@@ -4,6 +4,39 @@ A launch-and-trade terminal built on [Meteora's Dynamic Bonding Curve](https://d
 
 Built for **[Best use of Meteora's Dynamic Bonding Curve (DBC)](https://superteam.fun/earn/listing/meteora-dbc)**.
 
+## Quick tour for judges
+
+- **Live demo (Solana devnet):** https://meridian-delta-wheat.vercel.app
+- **Repository (public):** https://github.com/harlabi007/Meridian
+- **Network:** devnet. Connect a devnet wallet (Phantom/Solflare set to Devnet) and get free test SOL from https://faucet.solana.com
+
+**Two-minute path**
+
+1. **Curve Studio** — pick *Flat*, *Exponential* or *Long* (the curve directions Meteora suggested), adjust the numbers, and watch the price path, SOL needed to graduate, and a buy simulator update. It uses the same curve builder as the real launch.
+2. **Launch** — one click from Curve Studio. Your wallet signs one transaction that creates the DBC config and pool.
+3. **Trade** — open the pool, buy and sell against the live curve. Progress to migration, price change and activity update right after confirmation.
+4. **Around the pool** — creator fee claiming, wallet-signed comments and image changes, "Refer & earn" links, an embeddable widget, Leaderboard, Portfolio, and graduation alerts.
+
+## Where Meridian uses Meteora DBC
+
+| Feature | DBC SDK usage |
+|---|---|
+| Curve design and preview | `buildCurveWithMarketCap` — the same function builds both the preview and the real launch config, so what you preview is what deploys |
+| Pool creation | `client.partner.createConfigAndPool` — config and pool in one transaction; DAMM v2 migration with creator LP permanently locked, linear fee decay for sniper protection |
+| Live trading | `client.pool.swapQuote2` / `swap2` with `SwapMode.ExactIn` and slippage control |
+| Referral fees | `referralTokenAccount` passed through quote and swap |
+| Creator fees | `client.creator.claimCreatorTradingFeeToReceiver` |
+| Pool and curve state | `client.state.getPool` / `getPoolConfig`; Q64.64 `sqrtPrice` converted to price; the on-chain `curve` segments and `migrationSqrtPrice` are read back and checked against the preview |
+| Trade history | Anchor `EventParser` with the SDK's bundled IDL decodes swap events from transaction logs, with a price-snapshot fallback |
+| Graduation | migration progress from `migrationQuoteThreshold`; graduated pools link to Jupiter |
+
+## Honest notes
+
+- Runs on **devnet**. The program address is the same on mainnet, and the network is switched with environment variables (`NEXT_PUBLIC_SOLANA_CLUSTER`, `NEXT_PUBLIC_RPC_ENDPOINT`).
+- Pool data is synced from chain on request (no always-on indexer), so volume and price-change figures are estimates built from snapshots.
+- Curve Studio labels figures as a *verified estimate* when it cannot reproduce Meteora's exact on-chain rounding before launch.
+- Referral fees are implemented but have not been exercised on a live swap yet.
+
 ## Why this project
 
 DBC gives builders a fair, configurable bonding curve primitive, but today using it means either integrating the SDK yourself or trusting a black-box launchpad UI. Meridian is a reference-quality, open implementation of the full loop — **create → trade → watch it graduate** — with the curve math, progress tracking, and swap execution all visible and inspectable.
@@ -46,6 +79,82 @@ public on-chain state for fast reads.
 - **Leaderboard** — top volume, closest to graduating, graduated, top creators
 - **Portfolio** — your holdings, launches and watchlist
 - **Creator profiles** — every launch from a wallet, with its track record
+
+## Curve Studio presets (Flat / Exponential / Long)
+
+Matches Meteora's own suggested direction from the hackathon listing ("Novel Curve or Fee
+Configurations — Flat Curve, Exponential Curve or Long Curve") with three starting presets in
+`lib/curvePresets.ts`. Honesty note: DBC's market-cap-based curve builder always produces the
+same underlying shape (one constant-liquidity segment) — these presets don't create different
+on-chain curve *structures*, they set meaningfully different starting/migration market caps,
+supply and fees so the *trading experience* genuinely differs (verified: 3x vs 167x vs 200x
+price multiples, 28 vs 31 vs 113 SOL to graduate). Every field stays editable after picking one.
+
+## Image upload (no new infrastructure)
+
+Launch and Creator Tools now both support uploading an image file, not just pasting a link.
+This deliberately avoids adding a storage service or new credentials under deadline pressure:
+the browser resizes/compresses the file to a small JPEG (`lib/imageUpload.ts`) and stores it as
+a data URL in the same `imageUrl` field already used for links. One design choice worth knowing:
+at launch time, an uploaded file is NOT embedded in the on-chain transaction (that would risk
+exceeding Solana's transaction size limit) — instead the pool launches with no on-chain image
+URI, then the uploaded image is set via the existing signed off-chain update immediately after,
+the same trust-verified path Creator Tools already used. A pasted https:// link still goes
+on-chain as before.
+
+## SDK version fix (important)
+
+This project was originally built against Meteora's documentation, which — as it turns out —
+describes a newer version of `@meteora-ag/dynamic-bonding-curve-sdk` than what actually
+installs via the `^1.2.5` version range in package.json (real installed version: `1.5.13`).
+Several things differ between what the docs show and what this version's actual TypeScript
+types require:
+
+- `createConfigAndPool` lives on `client.partner`, not `client.pool` (pool service only
+  handles swaps in this version).
+- The token field is `tokenAuthorityOption` with enum `TokenAuthorityOption`, not
+  `tokenUpdateAuthority` / `TokenUpdateAuthorityOption`.
+- Swaps now use the newer `swap2` / `swapQuote2` pair (Meteora's own docs call these
+  "preferred" over the legacy `swap()` / `swapQuote()`), which take a `pool` field, not
+  `poolAddress`, and support `SwapMode.ExactIn`.
+
+`lib/dbc.ts` is fixed against Meteora's own published SDK reference
+(docs.meteora.ag/developer-guides/dbc/typescript-sdk/reference) and defends against a couple
+of remaining unknowns — e.g. unwrapping a `poolState` wrapper some versions nest state under —
+rather than assuming one exact shape. **This has not yet been exercised against a live devnet
+transaction** — test a real launch before a demo.
+
+## Referral fees, comments, and post-migration trading
+
+- **Referral fees (beta)** — Meteora's DBC has a built-in referral mechanism: a "Refer & earn"
+  button on every pool page gives you a link that routes a small share of trading fees to your
+  wallet when someone trades through it, with no extra step for the trader. This is wired
+  defensively (`lib/referral.ts`) — if anything about attaching the referral account fails for
+  any reason, the trade still goes through normally without it. **This hasn't been exercised on
+  a real devnet swap yet** — test it before relying on it for a demo.
+- **Comments** — wallet-signed discussion under every pool, same trust model as creator edits
+  (a signed message proves who's posting, no fake identities). **Requires a database change —
+  see below.**
+- **Post-migration trading link** — a graduated pool used to be a dead end ("trading has
+  moved"). Now it links straight to Jupiter so trading actually continues.
+
+### One extra step this round: update your database
+
+Comments need a new table. After copying the files in:
+```bash
+npm run db:push
+```
+Say yes if it asks to create the `Comment` table. Nothing else needs this — the other features
+use existing tables.
+
+## Live activity feed & embeds
+
+- **Homepage activity feed** — a real-time ticker of launches and trades across every pool
+  (`/api/activity`, `components/ActivityFeed.tsx`), not just the one you're looking at.
+- **Embeddable widgets** — every pool page has an "Embed" button that gives you an `<iframe>`
+  snippet for a chrome-free live price/progress widget (`/embed/[address]`) usable on any
+  external site. It deliberately doesn't embed wallet-connected trading — wallet browser
+  extensions are unreliable inside iframes — and instead links back to Meridian to trade.
 
 ## Community features
 
