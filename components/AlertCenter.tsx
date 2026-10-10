@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPools } from "@/lib/api";
+import { fmtPct } from "@/lib/format";
 import { appendAlertLog, usePrefs } from "@/lib/prefs";
 import { useWatchlist } from "@/lib/watchlist";
 
@@ -76,7 +77,7 @@ export function AlertCenter() {
       const isNew = !sent.has(`${p.address}:${highest}`);
       crossed.forEach((t) => sent.add(`${p.address}:${t}`)); // don't replay lower thresholds
       if (isNew) {
-        fresh.push({ id: `${p.address}:${highest}`, title: `${p.name} is ${highest}% to graduating`, body: `$${p.symbol} is at ${p.progressPct.toFixed(1)}% of its migration goal.`, href: `/pool/${p.address}` });
+        fresh.push({ id: `${p.address}:${highest}`, title: `${p.name} is ${highest}% to graduating`, body: `$${p.symbol} is at ${fmtPct(p.progressPct)} of its migration goal.`, href: `/pool/${p.address}` });
       }
     }
 

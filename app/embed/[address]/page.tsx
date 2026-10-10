@@ -7,7 +7,7 @@ import { PriceDelta } from "@/components/PriceDelta";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Logo } from "@/components/Logo";
 import { fetchPool } from "@/lib/api";
-import { fmtQuote } from "@/lib/format";
+import { fmtPct, fmtQuote } from "@/lib/format";
 
 /**
  * A compact, chrome-free widget meant to be embedded via <iframe> on third-party sites
@@ -42,7 +42,7 @@ export default function EmbedPoolPage() {
         {pool.migrated && <span className="text-[10px] px-2 py-0.5 rounded bg-buy/10 text-buy border border-buy/30 shrink-0">Migrated</span>}
       </div>
 
-      <div className="flex items-baseline gap-2 mb-3">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mb-3">
         <span className="font-mono text-lg">{fmtQuote(pool.priceQuote)}</span>
         <PriceDelta pct={pool.priceChangePct24h} />
       </div>
@@ -50,7 +50,7 @@ export default function EmbedPoolPage() {
       {!pool.migrated && (
         <div className="mb-3">
           <ProgressBar pct={pool.progressPct} size="sm" />
-          <p className="text-[11px] text-faint mt-1">{pool.progressPct.toFixed(0)}% to migration</p>
+          <p className="text-[11px] text-faint mt-1">{fmtPct(pool.progressPct)} to migration</p>
         </div>
       )}
 

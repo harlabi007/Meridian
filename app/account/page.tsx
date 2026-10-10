@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchPools } from "@/lib/api";
 import { usePrefs, useAlertLog, clearAlertLog } from "@/lib/prefs";
 import { explorerAddressUrl, CLUSTER } from "@/lib/solana";
-import { fmtTimeAgo, shortAddr } from "@/lib/format";
+import { fmtPct, fmtQuote, fmtTimeAgo, shortAddr } from "@/lib/format";
 import { Icon } from "@/components/Icon";
 
 const TABS = [
@@ -120,7 +120,7 @@ function WalletPanel({ address }: { address: string }) {
         <Stat label="Connected wallet" value={wallet?.adapter.name ?? "—"} />
         <Stat label="Network" value={CLUSTER === "devnet" ? "Devnet" : "Mainnet"} />
         <Stat label="Address" value={shortAddr(address, 6)} mono />
-        <Stat label="Balance" value={lamports === undefined || lamports === null ? "…" : `${(lamports / 1e9).toFixed(3)} SOL`} mono />
+        <Stat label="Balance" value={lamports === undefined || lamports === null ? "…" : fmtQuote(lamports / 1e9)} mono />
       </div>
       <div className="flex gap-2 flex-wrap">
         <a href={explorerAddressUrl(address)} target="_blank" rel="noreferrer" className="px-3 py-1.5 border border-border rounded text-xs text-muted hover:text-text hover:border-borderHi transition-colors">View on Solscan</a>
@@ -214,7 +214,7 @@ function SettingsPanel() {
   return (
     <Card title="Trading">
       <label className="block max-w-xs">
-        <span className="block text-xs text-muted mb-1.5">Max slippage: {(prefs.slippageBps / 100).toFixed(1)}%</span>
+        <span className="block text-xs text-muted mb-1.5">Max slippage: {fmtPct(prefs.slippageBps / 100)}</span>
         <input type="range" min="10" max="500" step="10" value={prefs.slippageBps} onChange={(e) => update({ slippageBps: Number(e.target.value) })} className="w-full accent-[var(--color-accent)]" />
       </label>
       <p className="text-xs text-faint mt-2 max-w-xs">Applied to every swap you make on Meridian. Higher slippage means your trade is less likely to fail, but you may receive a worse price.</p>

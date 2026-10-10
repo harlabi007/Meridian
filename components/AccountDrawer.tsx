@@ -9,7 +9,7 @@ import { Icon } from "./Icon";
 import { useWatchlist } from "@/lib/watchlist";
 import { usePrefs } from "@/lib/prefs";
 import { CLUSTER, explorerAddressUrl } from "@/lib/solana";
-import { shortAddr } from "@/lib/format";
+import { fmtQuote, shortAddr } from "@/lib/format";
 
 /** Deterministic two-colour avatar so each wallet looks distinct without any image. */
 function addressGradient(addr: string) {
@@ -143,7 +143,7 @@ function AccountDrawer({ address, onClose }: { address: string; onClose: () => v
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="border border-border rounded bg-panel2 px-3 py-2">
                 <p className="text-muted mb-0.5">Balance</p>
-                <p className="font-mono text-sm">{lamports === undefined ? "…" : `${(lamports / 1e9).toFixed(3)} SOL`}</p>
+                <p className="font-mono text-sm">{lamports === undefined ? "…" : fmtQuote(lamports / 1e9)}</p>
               </div>
               <div className="border border-border rounded bg-panel2 px-3 py-2">
                 <p className="text-muted mb-0.5">Network</p>

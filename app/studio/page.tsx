@@ -8,7 +8,7 @@ import { previewCurve } from "@/lib/studio";
 import { simulateBuy, milestones } from "@/lib/curve";
 import { LIMITS } from "@/lib/studioChecks";
 import { CURVE_PRESETS } from "@/lib/curvePresets";
-import { fmtCompact, fmtPct, fmtQuote } from "@/lib/format";
+import { fmtCompact, fmtMultiple, fmtPct, fmtQuote } from "@/lib/format";
 
 const PRESET_BUYS = [0.1, 0.5, 1, 5, 10];
 
@@ -94,7 +94,7 @@ export default function CurveStudioPage() {
           <Field label="Total token supply">
             <input className="input font-mono" type="number" min={LIMITS.supplyMin} max={LIMITS.supplyMax} value={supply} onChange={(e) => { setSupply(e.target.value); setActivePreset(null); }} />
           </Field>
-          <Field label={`Starting trading fee: ${(feeBps / 100).toFixed(2)}%`} hint="Decays linearly to 1% over the first hour — discourages sniping.">
+          <Field label={`Starting trading fee: ${fmtPct(feeBps / 100)}`} hint="Decays linearly to 1% over the first hour — discourages sniping.">
             <input type="range" min={LIMITS.feeMin} max={LIMITS.feeMax} step="25" value={feeBps} onChange={(e) => { setFeeBps(Number(e.target.value)); setActivePreset(null); }} className="w-full accent-[var(--color-accent)]" />
           </Field>
 
@@ -143,7 +143,7 @@ export default function CurveStudioPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 <StatPill label="Start price" value={fmtQuote(model.startPrice)} />
                 <StatPill label="Migration price" value={fmtQuote(model.migrationPrice)} />
-                <StatPill label="Price range" value={`${model.priceMultiple.toFixed(1)}x`} tone="buy" />
+                <StatPill label="Price range" value={fmtMultiple(model.priceMultiple)} tone="buy" />
                 <StatPill label="Raised to graduate" value={fmtQuote(model.quoteToGraduate)} />
               </div>
 
@@ -151,11 +151,11 @@ export default function CurveStudioPage() {
               <p className="text-xs text-faint mt-2">{fmtCompact(model.tokensOnCurve)} tokens sell along this curve; the rest seeds the DEX pool at graduation. The dot marks where your simulated buy ends.</p>
 
               <div className="mt-6 border border-border rounded overflow-x-auto">
-                <div className="grid grid-cols-5 text-xs text-muted px-3 py-2 bg-panel2 border-b border-border min-w-[560px]">
+                <div className="grid grid-cols-5 text-xs text-muted px-3 py-2 bg-panel2 border-b border-border min-w-[720px]">
                   <span>Progress</span><span>SOL raised</span><span>Tokens sold</span><span>Price</span><span className="text-right">Market cap</span>
                 </div>
                 {stages.map((s) => (
-                  <div key={s.progressPct} className="grid grid-cols-5 text-xs px-3 py-2 border-b border-border last:border-0 font-mono min-w-[560px]">
+                  <div key={s.progressPct} className="grid grid-cols-5 text-xs px-3 py-2 border-b border-border last:border-0 font-mono min-w-[720px]">
                     <span>{s.progressPct}%</span>
                     <span>{fmtQuote(s.quoteRaised)}</span>
                     <span>{fmtCompact(s.tokensSold)}</span>
@@ -188,11 +188,11 @@ export default function CurveStudioPage() {
               </div>
 
               <div className="mt-6 border border-border rounded overflow-x-auto">
-                <div className="grid grid-cols-5 text-xs text-muted px-3 py-2 bg-panel2 border-b border-border min-w-[520px]">
+                <div className="grid grid-cols-5 text-xs text-muted px-3 py-2 bg-panel2 border-b border-border min-w-[720px]">
                   <span>Buy</span><span>Tokens</span><span>Avg price</span><span>Impact</span><span className="text-right">Curve after</span>
                 </div>
                 {rows.map(({ size, r }) => (
-                  <div key={size} className="grid grid-cols-5 text-xs px-3 py-2 border-b border-border last:border-0 font-mono min-w-[520px]">
+                  <div key={size} className="grid grid-cols-5 text-xs px-3 py-2 border-b border-border last:border-0 font-mono min-w-[720px]">
                     <span>{size} SOL</span>
                     <span>{r ? fmtCompact(r.tokensOut) : "—"}</span>
                     <span>{r ? fmtQuote(r.avgPrice) : "—"}</span>

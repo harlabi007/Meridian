@@ -18,7 +18,7 @@ import { TokenAvatar } from "@/components/TokenAvatar";
 import { ErrorPanel, Skeleton } from "@/components/DataState";
 import { PriceDelta } from "@/components/PriceDelta";
 import { fetchActivity, fetchPool } from "@/lib/api";
-import { fmtCompact, fmtQuote, fmtTimeAgo, shortAddr } from "@/lib/format";
+import { fmtCompact, fmtPct, fmtQuote, fmtTimeAgo, shortAddr } from "@/lib/format";
 
 export default function PoolPage() {
   const { address } = useParams<{ address: string }>();
@@ -124,7 +124,7 @@ export default function PoolPage() {
                   </div>
                   {activity.snapshots.slice(0, 12).map((s, i) => (
                     <div key={i} className="grid grid-cols-3 text-xs px-3 py-2 border-b border-border last:border-0 font-mono min-w-[420px]">
-                      <span>{fmtQuote(s.priceQuote)}</span><span className="text-muted">{s.progressPct.toFixed(1)}%</span><span className="text-right text-faint">{fmtTimeAgo(s.takenAt)}</span>
+                      <span>{fmtQuote(s.priceQuote)}</span><span className="text-muted">{fmtPct(s.progressPct)}</span><span className="text-right text-faint">{fmtTimeAgo(s.takenAt)}</span>
                     </div>
                   ))}
                 </>

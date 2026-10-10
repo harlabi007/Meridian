@@ -12,7 +12,7 @@ import { queueRegistration, registerPool, type PoolRegistration } from "@/lib/re
 import { fileToResizedDataUrl, submitImageUpdate } from "@/lib/imageUpload";
 import { previewCurve } from "@/lib/studio";
 import { LIMITS } from "@/lib/studioChecks";
-import { fmtCompact, fmtQuote } from "@/lib/format";
+import { fmtCompact, fmtMultiple, fmtQuote } from "@/lib/format";
 import type { CreatePoolInput } from "@/lib/types";
 
 type Step = "form" | "building" | "signing" | "confirming" | "registering" | "done" | "error";
@@ -293,7 +293,7 @@ export function CreatePoolForm() {
             <dl className="space-y-2.5 text-xs">
               <Row k="Start price" v={fmtQuote(preview.model.startPrice)} />
               <Row k="Migration price" v={fmtQuote(preview.model.migrationPrice)} />
-              <Row k="Price range" v={`${preview.model.priceMultiple.toFixed(1)}x`} />
+              <Row k="Price range" v={fmtMultiple(preview.model.priceMultiple)} />
               <Row k="Raised to graduate" v={fmtQuote(preview.model.quoteToGraduate)} />
               <Row k="Tokens sold on curve" v={fmtCompact(preview.model.tokensOnCurve)} />
               <Row k="Figures" v={preview.model.source === "sdk" ? "Exact (launch config)" : "Verified estimate"} />

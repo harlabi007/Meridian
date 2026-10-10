@@ -11,7 +11,7 @@ import { attachReferral, getReferrerFromUrl } from "@/lib/referral";
 import { sendAndConfirm, TxError } from "@/lib/tx";
 import { explorerTxUrl } from "@/lib/solana";
 import { usePrefs } from "@/lib/prefs";
-import { fmtCompact } from "@/lib/format";
+import { fmtCompact, fmtPct } from "@/lib/format";
 
 type Side = "buy" | "sell";
 type Status = "idle" | "quoting" | "signing" | "done" | "error";
@@ -179,7 +179,7 @@ export function SwapWidget({ poolAddress, symbol, migrated, baseMint }: { poolAd
       </div>
       <div className="flex justify-between text-xs mb-4 px-0.5">
         <span className="text-faint">Max slippage</span>
-        <span className="font-mono text-muted">{(prefs.slippageBps / 100).toFixed(1)}%</span>
+        <span className="font-mono text-muted">{fmtPct(prefs.slippageBps / 100)}</span>
       </div>
 
       {error && <div role="alert" className="mb-3 px-3 py-2 border border-sell/40 bg-sell/10 text-sell text-xs rounded">{error}</div>}

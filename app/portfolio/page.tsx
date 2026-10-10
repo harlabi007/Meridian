@@ -93,11 +93,11 @@ export default function PortfolioPage() {
           <EmptyPanel title="No Meridian tokens yet" body="Tokens launched on Meridian that you hold will show up here." />
         ) : (
           <div className="border border-border rounded overflow-x-auto">
-            <div className="grid grid-cols-4 text-xs text-muted px-3 py-2 bg-panel2 border-b border-border min-w-[520px]">
+            <div className="grid grid-cols-4 text-xs text-muted px-3 py-2 bg-panel2 border-b border-border min-w-[640px]">
               <span>Token</span><span>Balance</span><span>Price</span><span className="text-right">Value</span>
             </div>
             {holdings.map(({ pool, amount, value }) => (
-              <Link key={pool.address} href={`/pool/${pool.address}`} className="grid grid-cols-4 items-center text-xs px-3 py-3 border-b border-border last:border-0 hover:bg-panel2 transition-colors min-w-[520px]">
+              <Link key={pool.address} href={`/pool/${pool.address}`} className="grid grid-cols-4 items-center text-xs px-3 py-3 border-b border-border last:border-0 hover:bg-panel2 transition-colors min-w-[640px]">
                 <span><span className="text-sm font-medium">{pool.name}</span>{" "}<span className="font-mono text-muted">${pool.symbol}</span></span>
                 <span className="font-mono">{fmtCompact(amount)}</span>
                 <span className="font-mono">{fmtQuote(pool.priceQuote)}</span>

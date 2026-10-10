@@ -7,8 +7,7 @@ export default function CreatePage() {
       <div className="mb-8 max-w-xl">
         <h1 className="text-2xl font-semibold tracking-tight mb-2">Launch a token</h1>
         <p className="text-muted text-sm leading-relaxed">
-          Set the curve&apos;s starting and migration market caps and DBC Launch
-          Studio builds the bonding curve config for you. The pool goes live
+          Set the curve&apos;s starting and migration market caps and Meridian builds the bonding curve config for you. The pool goes live
           the moment your transaction confirms.
         </p>
       </div>

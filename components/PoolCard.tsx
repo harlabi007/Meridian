@@ -3,7 +3,7 @@ import { ProgressBar } from "./ProgressBar";
 import { WatchlistStar } from "./WatchlistStar";
 import { TokenAvatar } from "./TokenAvatar";
 import { PriceDelta } from "./PriceDelta";
-import { fmtQuote, fmtTimeAgo, shortAddr } from "@/lib/format";
+import { fmtPct, fmtQuote, fmtTimeAgo, shortAddr } from "@/lib/format";
 import type { PoolSummary } from "@/lib/types";
 
 export function PoolCard({ pool, trending }: { pool: PoolSummary; trending?: boolean }) {
@@ -44,7 +44,7 @@ export function PoolCard({ pool, trending }: { pool: PoolSummary; trending?: boo
       <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
         <div>
           <div className="text-muted mb-0.5">Price</div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-1.5">
             <span className="font-mono text-text">{fmtQuote(pool.priceQuote)}</span>
             <PriceDelta pct={pool.priceChangePct24h} />
           </div>
@@ -66,7 +66,7 @@ export function PoolCard({ pool, trending }: { pool: PoolSummary; trending?: boo
       <ProgressBar pct={pool.progressPct} size="sm" />
       <div className="flex justify-between mt-3 text-xs text-faint">
         <span>{fmtTimeAgo(pool.createdAt)}</span>
-        <span>{pool.progressPct.toFixed(0)}% to migration</span>
+        <span>{fmtPct(pool.progressPct)} to migration</span>
       </div>
     </Link>
   );

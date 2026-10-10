@@ -15,7 +15,7 @@ export function StatPill({
     <div className="flex flex-col gap-1 px-4 py-3 border border-border rounded-lg bg-panel shadow-card">
       <span className="text-xs text-muted">{label}</span>
       <div className="flex items-baseline gap-2">
-        <span className={`font-mono text-sm ${toneClass}`}>{value}</span>
+        <span className={`font-mono ${value.length > 14 ? "text-xs" : "text-sm"} ${toneClass} break-all`}>{value}</span>
         {sub}
       </div>
     </div>

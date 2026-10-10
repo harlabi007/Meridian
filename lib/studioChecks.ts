@@ -1,4 +1,5 @@
 import { simulateBuy, type CurveModel } from "./curve";
+import { fmtDecimal, fmtMultiple, fmtPct } from "./format";
 
 export interface StudioInputs {
   startMcap: number;
@@ -39,10 +40,10 @@ export function validateInputs(i: StudioInputs): Check[] {
     err("Migration market cap must be higher", "The pool graduates when it reaches the migration market cap, so it has to be above the starting one.");
   }
   if (i.totalSupply < LIMITS.supplyMin) {
-    err("Total supply is too small", `Use at least ${LIMITS.supplyMin.toLocaleString()} tokens.`);
+    err("Total supply is too small", `Use at least ${fmtDecimal(LIMITS.supplyMin)} tokens.`);
   }
   if (i.totalSupply > LIMITS.supplyMax) {
-    err("Total supply is too large", `The maximum supported supply is ${LIMITS.supplyMax.toLocaleString()} tokens.`);
+    err("Total supply is too large", `The maximum supported supply is ${fmtDecimal(LIMITS.supplyMax)} tokens.`);
   }
   if (i.startingFeeBps < LIMITS.feeMin || i.startingFeeBps > LIMITS.feeMax) {
     err("Starting fee out of range", `Choose between ${LIMITS.feeMin / 100}% and ${LIMITS.feeMax / 100}%.`);
@@ -57,33 +58,33 @@ export function analyzeModel(m: CurveModel, i: StudioInputs): Check[] {
 
   const mult = m.priceMultiple;
   if (mult > 1000) {
-    add("warn", `Very steep price range (${mult.toFixed(0)}x)`, "Early buyers see enormous upside on paper, but late buyers face a very expensive curve. Consider a lower migration market cap.");
+    add("warn", `Very steep price range (${fmtMultiple(mult)})`, "Early buyers see enormous upside on paper, but late buyers face a very expensive curve. Consider a lower migration market cap.");
   } else if (mult < 3) {
-    add("warn", `Narrow price range (${mult.toFixed(1)}x)`, "There is little room for the price to move between launch and graduation.");
+    add("warn", `Narrow price range (${fmtMultiple(mult)})`, "There is little room for the price to move between launch and graduation.");
   } else {
-    add("ok", `Price range ${mult.toFixed(1)}x`, "A healthy spread between the starting and migration price.");
+    add("ok", `Price range ${fmtMultiple(mult)}`, "A healthy spread between the starting and migration price.");
   }
 
   const raise = m.quoteToGraduate;
   if (raise < 10) {
-    add("warn", `Cheap to graduate (${raise.toFixed(1)} SOL)`, "A single wallet could push this pool to graduation on its own.");
+    add("warn", `Cheap to graduate (${fmtDecimal(raise)} SOL)`, "A single wallet could push this pool to graduation on its own.");
   } else if (raise > 1000) {
-    add("warn", `Expensive to graduate (${raise.toFixed(0)} SOL)`, "Reaching migration will take a lot of demand; many pools stall well before it.");
+    add("warn", `Expensive to graduate (${fmtDecimal(raise)} SOL)`, "Reaching migration will take a lot of demand; many pools stall well before it.");
   } else {
-    add("ok", `${raise.toFixed(1)} SOL raised at graduation`, "A realistic amount of demand to reach migration.");
+    add("ok", `${fmtDecimal(raise)} SOL raised at graduation`, "A realistic amount of demand to reach migration.");
   }
 
   const first = simulateBuy(m, i.startingFeeBps, 1, 0);
   if (first && first.priceImpactPct > 50) {
-    add("warn", `Thin early liquidity (${first.priceImpactPct.toFixed(0)}% impact on a 1 SOL buy)`, "The first buys move the price sharply. Raise the starting market cap or lower the migration cap to soften this.");
+    add("warn", `Thin early liquidity (${fmtPct(first.priceImpactPct)} impact on a 1 SOL buy)`, "The first buys move the price sharply. Raise the starting market cap or lower the migration cap to soften this.");
   } else if (first) {
-    add("ok", `1 SOL buy moves the price ${first.priceImpactPct.toFixed(1)}%`, "Early trades won't swing the price wildly.");
+    add("ok", `1 SOL buy moves the price ${fmtPct(first.priceImpactPct)}`, "Early trades won't swing the price wildly.");
   }
 
   if (i.startingFeeBps >= 500) {
-    add("warn", `High launch fee (${(i.startingFeeBps / 100).toFixed(1)}%)`, "Strong sniper protection, but it discourages early buyers until the fee decays.");
+    add("warn", `High launch fee (${fmtPct(i.startingFeeBps / 100)})`, "Strong sniper protection, but it discourages early buyers until the fee decays.");
   } else {
-    add("ok", `Launch fee ${(i.startingFeeBps / 100).toFixed(1)}% decaying to 1%`, "The fee falls linearly to 1% over the first hour, which discourages sniping.");
+    add("ok", `Launch fee ${fmtPct(i.startingFeeBps / 100)} decaying to 1%`, "The fee falls linearly to 1% over the first hour, which discourages sniping.");
   }
 
   if (m.source === "estimate") {
